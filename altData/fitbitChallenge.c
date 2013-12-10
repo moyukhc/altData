@@ -5,11 +5,11 @@
 //figure out how to dynamically change file name
 //test on other machine to see if stdint.h works
 
-//#include <stdint.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
-#include "customtypes.h"
+//#include "customtypes.h"
 
 #define READBLOCKSIZE 3072 //number of bytes per chunk read - adjustable - larger size minimized number of reads/smaller size accounts for micro mem limitations
 
@@ -19,18 +19,24 @@ uint16_t sorted[32] = {0}; //sorted array of max values
 
 void sorter(uint16_t dataword, uint16_t *sortlist, int bottom, int top){ //binary search algo - only runs/pushes on 32 values, should be fast
 	printf("entered sorter\n");
+	printf("bottom = %d, top = %d\n",bottom,top);
 
-	int lower = (bottom-top)/2;
+	int lower = (top-bottom)/2;
 	int upper = lower+1;
 	printf("lower = %d, upper = %d\n",lower,upper);
+	printf("dataword = %d\n",dataword);
+	printf("sortlist[lower] = %d, sortlist[upper] = %d\n",sortlist[lower],sortlist[upper]);
 
-	if(dataword < sortlist[bottom]){
+	if(dataword < sortlist[lower]){
+		printf("dataword - %d,sortlist[lower] - %d\n",dataword,sortlist[lower]);
 		return sorter(dataword,sortlist,bottom,lower); //check this
 	}
-	if(dataword > sortlist[top]){
+	if(dataword > sortlist[upper]){
+		printf("dataword - %d,sortlist[upper] - %d\n",dataword,sortlist[upper]);
 		return sorter(dataword,sortlist,upper,top); //check this
 	}
 	else{
+		printf("inserting new value\n");
 		for(int i=0;i<bottom;i++){
 			sortlist[i] = sortlist[i+1]; //shift all lesser values
 		}
@@ -39,7 +45,7 @@ void sorter(uint16_t dataword, uint16_t *sortlist, int bottom, int top){ //binar
 }
 
 // main loop takes input file and writes data to output
-void main(int argc, const char *argv[]){
+int main(int argc, const char *argv[]){
 	//uint16_t READBLOCKSIZE = 3072;
 	printf("argc = %d\n", argc);
 
@@ -61,8 +67,9 @@ void main(int argc, const char *argv[]){
 		fflush(stdout);
 		uint16_t outputbuff[32]; //data output buffer
 
-		printf("readcheck");
+		printf("readcheck\n");
 		fflush(stdout);
+		printf("%d, %d, %d, %d, %d, %d, %d, %d\n",inbuff[0],inbuff[1],inbuff[2],inbuff[3],inbuff[4],inbuff[5],inbuff[6],inbuff[7]);
 
 		/*
 		//writes final output buffer for last block
@@ -83,7 +90,7 @@ void main(int argc, const char *argv[]){
 
 		//process and sort data in inbuff - binary sort
 		for(int i=0;i<READBLOCKSIZE;i=i+3){ //check the validity of below statements - converts 12-bit data to array of 16-bit words
-				printf("entered binary sort");
+				//printf("inbuff 1 - %d, inbuff 2 - %d, inbuff 3 - %d\n",inbuff[i],inbuff[i+1],inbuff[i+2]);
 				sorter((inbuff[i]<<4)||(inbuff[i+1]>>4),sorted,0,31);
 				sorter(((inbuff[i+1]<<8) && 0x0FFF)||(inbuff[i+2]),sorted,0,31);
 			} //sort word by word into sorted list
